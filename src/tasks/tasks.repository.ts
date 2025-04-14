@@ -32,7 +32,10 @@ export class TasksRepository {
   ): Promise<{ tasks: Task[]; totalCount: number; hasMoreItems: boolean }> {
     const filterQuery = {
       ...(filterOptions.status && { status: filterOptions.status }),
-      ...(filterOptions.priority && { priority: filterOptions.priority }),
+      ...(filterOptions.priority !== null &&
+        filterOptions.priority !== undefined && {
+          priority: filterOptions.priority,
+        }),
       ...(filterOptions.dueDateStart || filterOptions.dueDateEnd
         ? {
             dueDate: {
@@ -54,7 +57,12 @@ export class TasksRepository {
       .aggregate([
         {
           $match: {
-            $and: [{ userId, ...filterQuery, status: { $ne: "DELETED" } }],
+            status: { $ne: "DELETED" },
+          },
+        },
+        {
+          $match: {
+            $and: [{ userId, ...filterQuery }],
           },
         },
         {
